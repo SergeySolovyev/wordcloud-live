@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Ответ — облако слов</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #fbe9ff, #f1f5ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .card {
+      width: 100%;
+      max-width: 480px;
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 15px 30px rgba(15,23,42,0.2);
+    }
+    h1 {
+      font-size: 1.3rem;
+      margin-bottom: 16px;
+    }
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 0.98rem;
+    }
+    .custom-input {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      margin-top: 4px;
+    }
+    .btn {
+      margin-top: 12px;
+      width: 100%;
+      padding: 10px;
+      border-radius: 999px;
+      border: none;
+      background: #4f46e5;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .msg {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      min-height: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 id="question">Загрузка вопроса…</h1>
+    <div id="options"></div>
+
+    <label class="option">
+      <input type="radio" name="answer" value="__custom" id="customRadio">
+      <span>Свой вариант:</span>
+    </label>
+    <input id="customText" class="custom-input" placeholder="Напишите свой вариант">
+
+    <button class="btn" id="sendBtn">Отправить</button>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <script>
+    const questionEl = document.getElementById('question');
+    const optionsEl = document.getElementById('options');
+    const customTextEl = document.getElementById('customText');
+    const customRadioEl = document.getElementById('customRadio');
+    const sendBtn = document.getElementById('sendBtn');
+    const msgEl = document.getElementById('msg');
+
+    // Загружаем конфиг (вопрос + варианты)
+    fetch('/api/config')
+      .then((r) => r.json())
+      .then((cfg) => {
+        questionEl.textContent = cfg.question || 'Вопрос';
+        const opts = cfg.options || [];
+        opts.forEach((opt) => {
+          const label = document.createElement('label');
+          label.className = 'option';
+          const id = 'opt_' + Math.random().toString(36).slice(2);
+
+          label.innerHTML = `
+            <input type="radio" name="answer" value="${opt}" id="${id}">
+            <span>${opt}</span>
+          `;
+          optionsEl.appendChild(label);
+        });
+      })
+      .catch(() => {
+        questionEl.textContent = 'Вопрос';
+      });
+
+    // Если пользователь печатает свой вариант — автоотмечаем радио "Свой вариант"
+    customTextEl.addEventListener('input', () => {
+      if (customTextEl.value.trim()) {
+        customRadioEl.checked = true;
+      }
+    });
+
+    sendBtn.addEventListener('click', async () => {
+      msgEl.textContent = '';
+
+      const selected = document.querySelector('input[name="answer"]:checked');
+      if (!selected) {
+        msgEl.textContent = 'Выберите один вариант или введите свой.';
+        return;
+      }
+
+      let text = '';
+      if (selected.value === '__custom') {
+        text = customTextEl.value.trim();
+        if (!text) {
+          msgEl.textContent = 'Введите свой вариант.';
+          return;
+        }
+      } else {
+        text = selected.value;
+      }
+
+      try {
+        const res = await fetch('/api/answer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+
+        if (!res.ok) {
+          msgEl.textContent = 'Ошибка при отправке, попробуйте ещё раз.';
+          return;
+        }
+
+        msgEl.textContent = 'Спасибо! Ваш ответ учтён ✅';
+        customTextEl.value = '';
+      } catch (e) {
+        msgEl.textContent = 'Проблема с соединением, попробуйте ещё раз.';
+      }
+    });
+  </script>
+</body>
+</html>
+

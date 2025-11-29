@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Облако слов — экран</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Стили -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #fbe9ff, #f1f5ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .page {
+      width: 95vw;
+      height: 85vh;
+      max-width: 1300px;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      gap: 24px;
+      box-shadow: 0 18px 40px rgba(15,23,42,0.25);
+    }
+    .cloud-wrapper {
+      flex: 1;
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      overflow: hidden;
+      background: rgba(248, 250, 252, 0.9);
+      position: relative;
+    }
+    .cloud-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .side {
+      width: 260px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      text-align: center;
+    }
+    .side-question {
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+    .side-qr {
+      width: 180px;
+      height: 180px;
+      border-radius: 16px;
+      background: white;
+      padding: 8px;
+      box-shadow: 0 10px 25px rgba(15,23,42,0.25);
+    }
+    .side-hint {
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+    .side-link {
+      font-size: 0.85rem;
+      color: #4338ca;
+      word-break: break-all;
+    }
+    @media (max-width: 900px) {
+      .page {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+      }
+      .side {
+        width: 100%;
+        margin-top: 12px;
+      }
+      .cloud-wrapper {
+        min-height: 50vh;
+      }
+    }
+  </style>
+
+  <!-- React + ReactDOM + Babel (для JSX прямо в браузере) -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+  <!-- Socket.io client -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+          integrity="sha384-5dm1yyz9b3BIiKniB1QT1ACsonMS7t6fzHKvxlH4H9SKSwTnHYrP5Ilt9ES24ZCk"
+          crossorigin="anonymous"></script>
+
+  <!-- wordcloud2 -->
+  <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    function CloudApp() {
+      const [counts, setCounts] = React.useState({});
+      const [question, setQuestion] = React.useState('Загрузка вопроса…');
+      const canvasRef = React.useRef(null);
+
+      const voteUrl = window.location.origin + '/vote';
+      const qrSrc =
+        'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' +
+        encodeURIComponent(voteUrl);
+
+      // Загружаем текст вопроса
+      React.useEffect(() => {
+        fetch('/api/config')
+          .then((r) => r.json())
+          .then((cfg) => {
+            setQuestion(cfg.question || 'Облако слов');
+          })
+          .catch(() => setQuestion('Облако слов'));
+      }, []);
+
+      // Подключаемся к Socket.io
+      React.useEffect(() => {
+        const socket = io(); // тот же origin
+        socket.on('wordcloud:update', (data) => {
+          setCounts(data || {});
+        });
+        return () => socket.disconnect();
+      }, []);
+
+      // Рисуем облако при изменении counts или при ресайзе
+      React.useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        function draw() {
+          const entries = Object.entries(counts || {});
+          const ctx = canvas.getContext('2d');
+
+          // выставляем размер под контейнер
+          canvas.width = canvas.clientWidth;
+          canvas.height = canvas.clientHeight;
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          if (!entries.length) {
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '24px system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(
+              'Пока нет ответов',
+              canvas.width / 2,
+              canvas.height / 2
+            );
+            return;
+          }
+
+          const list = entries.map(([w, c]) => [w, c]);
+          const palette = ['#4f46e5', '#22c55e', '#f97316', '#ec4899', '#0ea5e9', '#facc15'];
+
+          const base = Math.min(canvas.width, canvas.height);
+          const weightFactor = base / 25;
+
+          WordCloud(canvas, {
+            list,
+            weightFactor,
+            rotateRatio: 0,
+            backgroundColor: 'rgba(0,0,0,0)',
+            color: () => palette[Math.floor(Math.random() * palette.length)],
+            shrinkToFit: true,
+            drawOutOfBound: false
+          });
+        }
+
+        draw();
+        window.addEventListener('resize', draw);
+        return () => window.removeEventListener('resize', draw);
+      }, [counts]);
+
+      return (
+        <div className="page">
+          <div className="cloud-wrapper">
+            <canvas ref={canvasRef} className="cloud-canvas" />
+          </div>
+          <div className="side">
+            <h2 className="side-question">{question}</h2>
+            <img src={qrSrc} alt="QR-код для ответа" className="side-qr" />
+            <p className="side-hint">
+              Сканируйте QR-код, чтобы ответить на вопрос.
+            </p>
+            <p className="side-link">{voteUrl}</p>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<CloudApp />);
+  </script>
+</body>
+</html>
+

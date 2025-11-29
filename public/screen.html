@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Вопрос — облако слов</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #fbe9ff, #f1f5ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .wrap {
+      width: 90vw;
+      max-width: 1100px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 24px;
+      padding: 32px;
+      display: flex;
+      gap: 32px;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 18px 40px rgba(15,23,42,0.25);
+    }
+    .col {
+      flex: 1;
+    }
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 16px;
+    }
+    .subtitle {
+      font-size: 1rem;
+      color: #4b5563;
+      margin-bottom: 8px;
+    }
+    .link {
+      font-size: 1.1rem;
+      color: #4338ca;
+      word-break: break-all;
+    }
+    .qr-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 220px;
+    }
+    .qr-col img {
+      width: 220px;
+      height: 220px;
+      border-radius: 16px;
+      background: white;
+      padding: 8px;
+      box-shadow: 0 10px 25px rgba(15,23,42,0.25);
+    }
+    .qr-hint {
+      font-size: 0.95rem;
+      color: #4b5563;
+      text-align: center;
+    }
+    @media (max-width: 768px) {
+      .wrap {
+        flex-direction: column;
+        text-align: center;
+      }
+      .qr-col {
+        min-width: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="col">
+      <h1 id="question">Загрузка вопроса…</h1>
+      <p class="subtitle">Наведите камеру телефона на QR-код или введите ссылку вручную:</p>
+      <p class="link" id="link"></p>
+    </div>
+    <div class="qr-col">
+      <img id="qr" alt="QR-код для ответа">
+      <div class="qr-hint">Этот QR ведёт на страницу ответа.</div>
+    </div>
+  </div>
+
+  <script>
+    const voteUrl = window.location.origin + '/vote';
+    document.getElementById('link').textContent = voteUrl;
+
+    const qrImg = document.getElementById('qr');
+    qrImg.src =
+      'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' +
+      encodeURIComponent(voteUrl);
+
+    fetch('/api/config')
+      .then((r) => r.json())
+      .then((cfg) => {
+        document.getElementById('question').textContent =
+          cfg.question || 'Вопрос';
+      })
+      .catch(() => {
+        document.getElementById('question').textContent = 'Вопрос';
+      });
+  </script>
+</body>
+</html>
+
