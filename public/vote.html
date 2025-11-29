@@ -58,6 +58,25 @@
       font-size: 0.9rem;
       min-height: 1.2em;
     }
+    .msg.error {
+      color: #dc2626;
+    }
+    .msg.success {
+      color: #16a34a;
+    }
+    .already-voted {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .already-voted-message {
+      background: #fef3c7;
+      border: 1px solid #fbbf24;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 16px;
+      color: #92400e;
+      font-size: 0.95rem;
+    }
   </style>
 </head>
 <body>
@@ -82,6 +101,37 @@
     const customRadioEl = document.getElementById('customRadio');
     const sendBtn = document.getElementById('sendBtn');
     const msgEl = document.getElementById('msg');
+    const cardEl = document.querySelector('.card');
+
+    // Ключ для localStorage
+    const VOTED_KEY = 'wordcloud_voted';
+
+    // Проверяем, голосовал ли уже пользователь
+    function hasVoted() {
+      return localStorage.getItem(VOTED_KEY) === 'true';
+    }
+
+    // Помечаем, что пользователь проголосовал
+    function markAsVoted() {
+      localStorage.setItem(VOTED_KEY, 'true');
+    }
+
+    // Показываем сообщение о том, что уже голосовал
+    function showAlreadyVoted() {
+      const message = document.createElement('div');
+      message.className = 'already-voted-message';
+      message.textContent = 'Вы уже проголосовали. Один человек может проголосовать только один раз.';
+      cardEl.insertBefore(message, questionEl);
+      
+      // Делаем форму неактивной
+      cardEl.classList.add('already-voted');
+      sendBtn.disabled = true;
+    }
+
+    // Проверяем при загрузке страницы
+    if (hasVoted()) {
+      showAlreadyVoted();
+    }
 
     // Загружаем конфиг (вопрос + варианты)
     fetch('/api/config')
@@ -114,10 +164,19 @@
 
     sendBtn.addEventListener('click', async () => {
       msgEl.textContent = '';
+      msgEl.className = 'msg';
+
+      // Проверка на клиенте
+      if (hasVoted()) {
+        msgEl.textContent = 'Вы уже проголосовали. Один человек может проголосовать только один раз.';
+        msgEl.className = 'msg error';
+        return;
+      }
 
       const selected = document.querySelector('input[name="answer"]:checked');
       if (!selected) {
         msgEl.textContent = 'Выберите один вариант или введите свой.';
+        msgEl.className = 'msg error';
         return;
       }
 
@@ -126,6 +185,7 @@
         text = customTextEl.value.trim();
         if (!text) {
           msgEl.textContent = 'Введите свой вариант.';
+          msgEl.className = 'msg error';
           return;
         }
       } else {
@@ -139,15 +199,32 @@
           body: JSON.stringify({ text })
         });
 
+        const data = await res.json();
+
         if (!res.ok) {
-          msgEl.textContent = 'Ошибка при отправке, попробуйте ещё раз.';
+          msgEl.textContent = data.error || 'Ошибка при отправке, попробуйте ещё раз.';
+          msgEl.className = 'msg error';
+          
+          // Если ошибка 403 (уже голосовал), помечаем на клиенте
+          if (res.status === 403) {
+            markAsVoted();
+            showAlreadyVoted();
+          }
           return;
         }
 
+        // Успешное голосование
+        markAsVoted();
         msgEl.textContent = 'Спасибо! Ваш ответ учтён ✅';
+        msgEl.className = 'msg success';
         customTextEl.value = '';
+        
+        // Делаем форму неактивной
+        cardEl.classList.add('already-voted');
+        sendBtn.disabled = true;
       } catch (e) {
         msgEl.textContent = 'Проблема с соединением, попробуйте ещё раз.';
+        msgEl.className = 'msg error';
       }
     });
   </script>

@@ -68,6 +68,10 @@ const DEFAULT_OPTIONS = [
 // Частоты слов в памяти
 let wordCounts = {};
 
+// Хранилище уже проголосовавших (IP-адреса)
+// В продакшене лучше использовать Redis или БД, но для MVP хватит памяти
+const votedIPs = new Set();
+
 // Простейшая нормализация русского текста
 function normalizeText(text) {
   if (!text) return [];
@@ -91,6 +95,15 @@ app.get('/api/config', (req, res) => {
   });
 });
 
+// Получаем IP-адрес клиента (учитываем прокси Render)
+function getClientIP(req) {
+  return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
+         req.headers['x-real-ip'] || 
+         req.connection.remoteAddress || 
+         req.socket.remoteAddress ||
+         'unknown';
+}
+
 // Принимаем один ответ (готовый вариант или свой текст)
 app.post('/api/answer', (req, res) => {
   const { text } = req.body || {};
@@ -98,6 +111,20 @@ app.post('/api/answer', (req, res) => {
   if (!text || !text.trim()) {
     return res.status(400).json({ error: 'Пустой ответ' });
   }
+
+  // Проверяем, не голосовал ли уже этот IP
+  const clientIP = getClientIP(req);
+  
+  if (votedIPs.has(clientIP)) {
+    console.log('Попытка повторного голосования с IP:', clientIP);
+    return res.status(403).json({ 
+      error: 'Вы уже проголосовали. Один человек может проголосовать только один раз.' 
+    });
+  }
+
+  // Добавляем IP в список проголосовавших
+  votedIPs.add(clientIP);
+  console.log('Новое голосование с IP:', clientIP);
 
   const words = normalizeText(text);
 
@@ -117,7 +144,9 @@ app.post('/api/answer', (req, res) => {
 // Сбросить все ответы (если захочешь делать новый раунд)
 app.post('/api/reset', (req, res) => {
   wordCounts = {};
+  votedIPs.clear(); // Очищаем список проголосовавших
   io.emit('wordcloud:update', wordCounts);
+  console.log('Облако и список голосов сброшены');
   res.json({ ok: true });
 });
 
