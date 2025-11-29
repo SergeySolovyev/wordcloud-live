@@ -19,15 +19,30 @@ app.get('/', (req, res) => {
 
 // Красивые пути без .html
 app.get('/screen', (req, res) => {
-  res.sendFile(path.join(publicPath, 'screen.html'));
+  res.sendFile(path.join(publicPath, 'screen.html'), (err) => {
+    if (err) {
+      console.error('Error sending screen.html:', err);
+      res.status(500).send('Error loading page');
+    }
+  });
 });
 
 app.get('/cloud', (req, res) => {
-  res.sendFile(path.join(publicPath, 'cloud.html'));
+  res.sendFile(path.join(publicPath, 'cloud.html'), (err) => {
+    if (err) {
+      console.error('Error sending cloud.html:', err);
+      res.status(500).send('Error loading page');
+    }
+  });
 });
 
 app.get('/vote', (req, res) => {
-  res.sendFile(path.join(publicPath, 'vote.html'));
+  res.sendFile(path.join(publicPath, 'vote.html'), (err) => {
+    if (err) {
+      console.error('Error sending vote.html:', err);
+      res.status(500).send('Error loading page');
+    }
+  });
 });
 
 // --- Конфиг опроса ---
@@ -53,6 +68,11 @@ function normalizeText(text) {
     .split(/\s+/)
     .filter((w) => w.length > 1);
 }
+
+// Тестовый эндпоинт для проверки работоспособности
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // Конфиг для фронта
 app.get('/api/config', (req, res) => {
@@ -96,8 +116,10 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Сервер запущен:  http://localhost:${PORT}`);
+const HOST = process.env.HOST || '0.0.0.0';
+
+server.listen(PORT, HOST, () => {
+  console.log(`Сервер запущен на ${HOST}:${PORT}`);
   console.log(`Вопрос + QR:     http://localhost:${PORT}/screen`);
   console.log(`Живое облако:    http://localhost:${PORT}/cloud`);
   console.log(`Страница ответа: http://localhost:${PORT}/vote`);
