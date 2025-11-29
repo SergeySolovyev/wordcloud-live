@@ -125,11 +125,34 @@
 
       // Подключаемся к Socket.io
       React.useEffect(() => {
-        const socket = io(); // тот же origin
+        const socket = io({
+          transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionAttempts: 5
+        });
+        
+        socket.on('connect', () => {
+          console.log('Socket.io подключен:', socket.id);
+        });
+        
+        socket.on('disconnect', () => {
+          console.log('Socket.io отключен');
+        });
+        
+        socket.on('connect_error', (error) => {
+          console.error('Ошибка подключения Socket.io:', error);
+        });
+        
         socket.on('wordcloud:update', (data) => {
+          console.log('Получено обновление облака:', data);
           setCounts(data || {});
         });
-        return () => socket.disconnect();
+        
+        return () => {
+          console.log('Отключение Socket.io');
+          socket.disconnect();
+        };
       }, []);
 
       // Рисуем облако при изменении counts или при ресайзе

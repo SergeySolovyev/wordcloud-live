@@ -5,7 +5,16 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+
+// Настройка Socket.io для работы на Render
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  },
+  transports: ['websocket', 'polling'], // Поддержка polling как fallback
+  allowEIO3: true
+});
 
 app.use(express.json());
 
@@ -97,7 +106,10 @@ app.post('/api/answer', (req, res) => {
   });
 
   // Рассылаем всем новое состояние облака
+  console.log('Новое голосование, слова:', words);
+  console.log('Текущие счетчики:', wordCounts);
   io.emit('wordcloud:update', wordCounts);
+  console.log('Обновление отправлено всем клиентам');
 
   res.json({ ok: true });
 });
@@ -111,8 +123,14 @@ app.post('/api/reset', (req, res) => {
 
 // WebSocket-подключения
 io.on('connection', (socket) => {
+  console.log('Новое подключение:', socket.id);
+  
   // При подключении сразу отправляем текущее состояние
   socket.emit('wordcloud:update', wordCounts);
+  
+  socket.on('disconnect', () => {
+    console.log('Отключение:', socket.id);
+  });
 });
 
 const PORT = process.env.PORT || 3000;
