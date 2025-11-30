@@ -228,10 +228,10 @@
             // Плавный переход от старого к новому значению
             const interpolatedCount = prevCount + (count - prevCount) * progress;
             
-            // Нормализуем к диапазону 40-120 (увеличили для лучшей видимости)
+            // Нормализуем к диапазону 20-60 (уменьшили, чтобы слова не выходили за пределы)
             const normalized = minCount === maxCount 
-              ? 80
-              : 40 + ((interpolatedCount - minCount) / (maxCount - minCount)) * 80;
+              ? 40
+              : 20 + ((interpolatedCount - minCount) / (maxCount - minCount)) * 40;
             return [word, normalized];
           });
 
@@ -239,7 +239,7 @@
 
           // Вычисляем weightFactor на основе размера canvas
           const base = Math.min(canvas.width, canvas.height);
-          const weightFactor = base / 12; // Уменьшили делитель для больших размеров слов
+          const weightFactor = base / 25; // Увеличили делитель, чтобы слова были меньше и помещались
           
           // Уменьшаем gridSize для лучшей видимости (но не слишком маленький для памяти)
           const gridSize = Math.max(8, Math.floor(base / 100));
@@ -253,8 +253,9 @@
               color: () => palette[Math.floor(Math.random() * palette.length)],
               shrinkToFit: true,
               drawOutOfBound: false,
-              minSize: 16, // Увеличили минимальный размер
+              minSize: 14, // Минимальный размер
               gridSize: gridSize, // Увеличенный gridSize для экономии памяти
+              maxSize: 60, // Максимальный размер, чтобы слова не выходили за пределы
               fontFamily: 'system-ui, -apple-system, sans-serif',
               fontWeight: 'normal',
               maxRotation: 0,
