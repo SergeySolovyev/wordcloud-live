@@ -184,12 +184,12 @@
           const maxCount = Math.max(...entries.map(([_, c]) => c), 1);
           const minCount = Math.min(...entries.map(([_, c]) => c), 1);
           
-          // Нормализуем к диапазону 20-80 для визуализации (больше диапазон = больше размер)
+          // Нормализуем к диапазону 30-120 для визуализации (больше диапазон = больше размер)
           const normalizedList = entries.map(([word, count]) => {
-            // Нормализуем от minCount до maxCount к диапазону 20-80
+            // Нормализуем от minCount до maxCount к диапазону 30-120
             const normalized = minCount === maxCount 
-              ? 50 // Если все значения одинаковые
-              : 20 + ((count - minCount) / (maxCount - minCount)) * 60;
+              ? 75 // Если все значения одинаковые
+              : 30 + ((count - minCount) / (maxCount - minCount)) * 90;
             return [word, normalized];
           });
 
