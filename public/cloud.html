@@ -228,10 +228,10 @@
             // Плавный переход от старого к новому значению
             const interpolatedCount = prevCount + (count - prevCount) * progress;
             
-            // Нормализуем к диапазону 15-60 (еще меньше для экономии памяти)
+            // Нормализуем к диапазону 40-120 (увеличили для лучшей видимости)
             const normalized = minCount === maxCount 
-              ? 40
-              : 15 + ((interpolatedCount - minCount) / (maxCount - minCount)) * 45;
+              ? 80
+              : 40 + ((interpolatedCount - minCount) / (maxCount - minCount)) * 80;
             return [word, normalized];
           });
 
@@ -239,10 +239,10 @@
 
           // Вычисляем weightFactor на основе размера canvas
           const base = Math.min(canvas.width, canvas.height);
-          const weightFactor = base / 20; // Еще больше делитель для меньших размеров
+          const weightFactor = base / 12; // Уменьшили делитель для больших размеров слов
           
-          // Увеличиваем gridSize для экономии памяти
-          const gridSize = Math.max(12, Math.floor(base / 60));
+          // Уменьшаем gridSize для лучшей видимости (но не слишком маленький для памяти)
+          const gridSize = Math.max(8, Math.floor(base / 100));
 
           try {
             WordCloud(canvas, {
@@ -253,7 +253,7 @@
               color: () => palette[Math.floor(Math.random() * palette.length)],
               shrinkToFit: true,
               drawOutOfBound: false,
-              minSize: 10,
+              minSize: 16, // Увеличили минимальный размер
               gridSize: gridSize, // Увеличенный gridSize для экономии памяти
               fontFamily: 'system-ui, -apple-system, sans-serif',
               fontWeight: 'normal',
