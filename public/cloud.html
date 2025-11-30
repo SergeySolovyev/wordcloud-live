@@ -188,9 +188,13 @@
           const entries = Object.entries(counts || {});
           const ctx = canvas.getContext('2d');
 
-          // выставляем размер под контейнер
-          canvas.width = canvas.clientWidth;
-          canvas.height = canvas.clientHeight;
+          // Ограничиваем максимальный размер canvas для предотвращения ошибок памяти
+          const maxCanvasSize = 1200; // Максимальный размер canvas
+          const clientWidth = Math.min(canvas.clientWidth, maxCanvasSize);
+          const clientHeight = Math.min(canvas.clientHeight, maxCanvasSize);
+          
+          canvas.width = clientWidth;
+          canvas.height = clientHeight;
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -206,10 +210,10 @@
             return;
           }
 
-          // Ограничиваем количество слов для производительности (топ-30)
+          // Ограничиваем количество слов для производительности (топ-20)
           const limitedEntries = entries
             .sort((a, b) => b[1] - a[1])
-            .slice(0, 30);
+            .slice(0, 20);
           
           if (!limitedEntries.length) return;
           
@@ -224,10 +228,10 @@
             // Плавный переход от старого к новому значению
             const interpolatedCount = prevCount + (count - prevCount) * progress;
             
-            // Нормализуем к диапазону 20-80 (уменьшили для меньшего потребления памяти)
+            // Нормализуем к диапазону 15-60 (еще меньше для экономии памяти)
             const normalized = minCount === maxCount 
-              ? 50
-              : 20 + ((interpolatedCount - minCount) / (maxCount - minCount)) * 60;
+              ? 40
+              : 15 + ((interpolatedCount - minCount) / (maxCount - minCount)) * 45;
             return [word, normalized];
           });
 
@@ -235,7 +239,7 @@
 
           // Вычисляем weightFactor на основе размера canvas
           const base = Math.min(canvas.width, canvas.height);
-          const weightFactor = base / 15; // Увеличили делитель для меньших размеров
+          const weightFactor = base / 20; // Еще больше делитель для меньших размеров
           
           // Ограничиваем размер canvas для предотвращения ошибок памяти
           const maxCanvasSize = 1200; // Максимальный размер canvas
