@@ -39,6 +39,21 @@
       width: 100%;
       height: 100%;
       display: block;
+      animation: float 20s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% {
+        transform: translate(0, 0) scale(1);
+      }
+      25% {
+        transform: translate(2px, -3px) scale(1.01);
+      }
+      50% {
+        transform: translate(-2px, 2px) scale(1);
+      }
+      75% {
+        transform: translate(3px, 1px) scale(1.01);
+      }
     }
     .side {
       width: 260px;
@@ -105,6 +120,8 @@
       const [counts, setCounts] = React.useState({});
       const [question, setQuestion] = React.useState('Загрузка вопроса…');
       const canvasRef = React.useRef(null);
+      const prevCountsRef = React.useRef({});
+      const animationFrameRef = React.useRef(null);
 
       const voteUrl = window.location.origin + '/vote';
       const qrSrc =
@@ -144,7 +161,10 @@
         
         socket.on('wordcloud:update', (data) => {
           console.log('Получено обновление облака:', data);
-          setCounts(data || {});
+          const newCounts = data || {};
+          // Плавный переход к новым данным
+          prevCountsRef.current = counts;
+          setCounts(newCounts);
         });
         
         return () => {
@@ -153,12 +173,16 @@
         };
       }, []);
 
-      // Рисуем облако при изменении counts или при ресайзе
+      // Рисуем облако с анимацией при изменении counts или при ресайзе
       React.useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        function draw() {
+        let animationStart = Date.now();
+        const animationDuration = 1000; // 1 секунда на анимацию
+        const prevCounts = prevCountsRef.current;
+
+        function draw(progress = 1) {
           const entries = Object.entries(counts || {});
           const ctx = canvas.getContext('2d');
 
@@ -184,21 +208,25 @@
           const maxCount = Math.max(...entries.map(([_, c]) => c), 1);
           const minCount = Math.min(...entries.map(([_, c]) => c), 1);
           
-          // Нормализуем к диапазону 30-120 для визуализации (больше диапазон = больше размер)
+          // Интерполируем между старыми и новыми значениями для плавной анимации
           const normalizedList = entries.map(([word, count]) => {
-            // Нормализуем от minCount до maxCount к диапазону 30-120
+            const prevCount = prevCounts[word] || 0;
+            
+            // Плавный переход от старого к новому значению
+            const interpolatedCount = prevCount + (count - prevCount) * progress;
+            
+            // Нормализуем к диапазону 30-120
             const normalized = minCount === maxCount 
-              ? 75 // Если все значения одинаковые
-              : 30 + ((count - minCount) / (maxCount - minCount)) * 90;
+              ? 75
+              : 30 + ((interpolatedCount - minCount) / (maxCount - minCount)) * 90;
             return [word, normalized];
           });
 
           const palette = ['#4f46e5', '#22c55e', '#f97316', '#ec4899', '#0ea5e9', '#facc15'];
 
           // Вычисляем weightFactor на основе размера canvas
-          // Используем меньший размер для более точного масштабирования
           const base = Math.min(canvas.width, canvas.height);
-          const weightFactor = base / 10; // Увеличили делитель для больших размеров
+          const weightFactor = base / 10;
 
           WordCloud(canvas, {
             list: normalizedList,
@@ -208,16 +236,53 @@
             color: () => palette[Math.floor(Math.random() * palette.length)],
             shrinkToFit: true,
             drawOutOfBound: false,
-            minSize: 12, // Минимальный размер шрифта
-            gridSize: 8, // Размер сетки для размещения слов
+            minSize: 12,
+            gridSize: 8,
             fontFamily: 'system-ui, -apple-system, sans-serif',
             fontWeight: 'normal'
           });
         }
 
-        draw();
-        window.addEventListener('resize', draw);
-        return () => window.removeEventListener('resize', draw);
+        // Анимация перехода
+        function animate() {
+          const elapsed = Date.now() - animationStart;
+          const progress = Math.min(elapsed / animationDuration, 1);
+          
+          // Easing функция для плавности
+          const easedProgress = progress < 0.5 
+            ? 2 * progress * progress 
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+          
+          draw(easedProgress);
+          
+          if (progress < 1) {
+            animationFrameRef.current = requestAnimationFrame(animate);
+          } else {
+            // Анимация завершена, обновляем предыдущие значения
+            prevCountsRef.current = counts;
+          }
+        }
+
+        // Запускаем анимацию
+        animationStart = Date.now();
+        animate();
+
+        // Обработчик ресайза
+        const handleResize = () => {
+          if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+          }
+          draw(1);
+        };
+
+        window.addEventListener('resize', handleResize);
+        
+        return () => {
+          window.removeEventListener('resize', handleResize);
+          if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+          }
+        };
       }, [counts]);
 
       return (
