@@ -180,20 +180,38 @@
             return;
           }
 
-          const list = entries.map(([w, c]) => [w, c]);
+          // Нормализуем значения относительно максимального
+          const maxCount = Math.max(...entries.map(([_, c]) => c), 1);
+          const minCount = Math.min(...entries.map(([_, c]) => c), 1);
+          
+          // Нормализуем к диапазону 10-100 для визуализации
+          const normalizedList = entries.map(([word, count]) => {
+            // Нормализуем от minCount до maxCount к диапазону 10-100
+            const normalized = minCount === maxCount 
+              ? 50 // Если все значения одинаковые
+              : 10 + ((count - minCount) / (maxCount - minCount)) * 90;
+            return [word, normalized];
+          });
+
           const palette = ['#4f46e5', '#22c55e', '#f97316', '#ec4899', '#0ea5e9', '#facc15'];
 
+          // Вычисляем weightFactor на основе размера canvas
+          // Используем меньший размер для более точного масштабирования
           const base = Math.min(canvas.width, canvas.height);
-          const weightFactor = base / 25;
+          const weightFactor = base / 15; // Уменьшили делитель для лучшего масштабирования
 
           WordCloud(canvas, {
-            list,
+            list: normalizedList,
             weightFactor,
             rotateRatio: 0,
             backgroundColor: 'rgba(0,0,0,0)',
             color: () => palette[Math.floor(Math.random() * palette.length)],
             shrinkToFit: true,
-            drawOutOfBound: false
+            drawOutOfBound: false,
+            minSize: 12, // Минимальный размер шрифта
+            gridSize: 8, // Размер сетки для размещения слов
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            fontWeight: 'normal'
           });
         }
 
