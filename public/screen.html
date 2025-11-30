@@ -8,55 +8,72 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(135deg, #fbe9ff, #f1f5ff);
+      font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 20px;
     }
     .wrap {
       width: 90vw;
-      max-width: 1100px;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 24px;
-      padding: 32px;
+      max-width: 1200px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 40px;
       display: flex;
-      gap: 32px;
+      gap: 40px;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 18px 40px rgba(15,23,42,0.25);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
     .col {
       flex: 1;
     }
     h1 {
-      font-size: 2.2rem;
-      margin-bottom: 16px;
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 20px;
+      line-height: 1.2;
     }
     .subtitle {
-      font-size: 1rem;
-      color: #4b5563;
-      margin-bottom: 8px;
+      font-size: 1.1rem;
+      color: #64748b;
+      margin-bottom: 12px;
+      font-weight: 500;
     }
     .link {
-      font-size: 1.1rem;
-      color: #4338ca;
+      font-size: 1rem;
+      color: #3b82f6;
       word-break: break-all;
+      font-weight: 600;
+      background: rgba(59, 130, 246, 0.1);
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      display: inline-block;
     }
     .qr-col {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      min-width: 220px;
+      gap: 12px;
+      min-width: 240px;
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
     }
     .qr-col img {
-      width: 220px;
-      height: 220px;
-      border-radius: 16px;
+      width: 240px;
+      height: 240px;
+      border-radius: 12px;
       background: white;
-      padding: 8px;
-      box-shadow: 0 10px 25px rgba(15,23,42,0.25);
+      padding: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      border: 2px solid #e5e7eb;
     }
     .qr-hint {
       font-size: 0.95rem;

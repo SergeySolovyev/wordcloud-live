@@ -10,31 +10,33 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(135deg, #fbe9ff, #f1f5ff);
+      font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 20px;
     }
     .page {
       width: 95vw;
       height: 85vh;
-      max-width: 1300px;
-      background: rgba(255, 255, 255, 0.92);
-      border-radius: 24px;
-      padding: 24px;
+      max-width: 1400px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
       display: flex;
-      gap: 24px;
-      box-shadow: 0 18px 40px rgba(15,23,42,0.25);
+      gap: 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
     .cloud-wrapper {
       flex: 1;
-      border-radius: 20px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
+      border-radius: 12px;
+      border: 2px solid #e5e7eb;
       overflow: hidden;
-      background: rgba(248, 250, 252, 0.9);
+      background: #f9fafb;
       position: relative;
-      /* Анимация убрана */
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
     }
     .cloud-canvas {
       width: 100%;
@@ -42,34 +44,48 @@
       display: block;
     }
     .side {
-      width: 260px;
+      width: 280px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 20px;
       text-align: center;
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid #e2e8f0;
     }
     .side-question {
-      font-size: 1rem;
-      margin-bottom: 4px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 8px;
+      line-height: 1.4;
     }
     .side-qr {
-      width: 180px;
-      height: 180px;
-      border-radius: 16px;
+      width: 200px;
+      height: 200px;
+      border-radius: 12px;
       background: white;
-      padding: 8px;
-      box-shadow: 0 10px 25px rgba(15,23,42,0.25);
+      padding: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      border: 2px solid #e5e7eb;
     }
     .side-hint {
       font-size: 0.9rem;
-      color: #4b5563;
+      color: #64748b;
+      font-weight: 500;
     }
     .side-link {
-      font-size: 0.85rem;
-      color: #4338ca;
+      font-size: 0.8rem;
+      color: #3b82f6;
       word-break: break-all;
+      font-weight: 500;
+      background: rgba(59, 130, 246, 0.1);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(59, 130, 246, 0.2);
     }
     @media (max-width: 900px) {
       .page {
@@ -219,7 +235,8 @@
             return [word, normalized];
           });
 
-          const palette = ['#4f46e5', '#22c55e', '#f97316', '#ec4899', '#0ea5e9', '#facc15'];
+          // Профессиональная палитра корпоративных цветов
+          const palette = ['#1e40af', '#3b82f6', '#2563eb', '#1d4ed8', '#0ea5e9', '#0284c7', '#0369a1', '#075985'];
 
           // Вычисляем weightFactor на основе размера canvas
           const base = Math.min(canvas.width, canvas.height);
