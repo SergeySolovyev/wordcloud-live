@@ -1,0 +1,49 @@
+Задача: Завершить деплой проекта wordcloud-live на GitHub и Render
+
+Текущее состояние:
+- Локальный Git репозиторий готов, все файлы закоммичены
+- Remote настроен на https://github.com/SergeySolovyev/wordcloud-live.git
+- Репозиторий на GitHub ещё не создан
+- Код не отправлен на GitHub
+- Деплой на Render не настроен
+
+Что нужно сделать:
+
+1. СОЗДАТЬ РЕПОЗИТОРИЙ НА GITHUB
+   - Открыть https://github.com/new
+   - Название: wordcloud-live
+   - Владелец: SergeySolovyev
+   - НЕ добавлять README, .gitignore, лицензию
+   - Создать репозиторий
+
+2. ОТПРАВИТЬ КОД НА GITHUB
+   - Выполнить: git push -u origin main
+   - Убедиться, что код успешно отправлен
+   - Проверить доступность: https://github.com/SergeySolovyev/wordcloud-live
+
+3. НАСТРОИТЬ ДЕПЛОЙ НА RENDER
+   - Открыть https://dashboard.render.com/new/web
+   - Подключить GitHub (если нужно)
+   - Выбрать репозиторий: SergeySolovyev/wordcloud-live
+   - Настройки:
+     * Name: wordcloud-live
+     * Region: любой
+     * Branch: main
+     * Runtime: Node
+     * Build Command: npm install
+     * Start Command: npm start
+     * Plan: Free
+   - Создать Web Service
+   - Дождаться завершения деплоя
+
+4. ПРОВЕРИТЬ РАБОТОСПОСОБНОСТЬ
+   - Открыть https://ваш-сервис.onrender.com/api/health
+   - Открыть https://ваш-сервис.onrender.com/screen
+   - Открыть https://ваш-сервис.onrender.com/cloud
+   - Открыть https://ваш-сервис.onrender.com/vote
+
+Рабочая директория: C:\Users\1\wordcloud-live
+
+Важно: Если репозиторий на GitHub уже существует, пропустить шаг 1.
+Если деплой на Render уже настроен, он обновится автоматически после push.
+

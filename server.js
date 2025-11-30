@@ -6,13 +6,12 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 
-// Настройка Socket.io для работы на Render
 const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
   },
-  transports: ['websocket', 'polling'], // Поддержка polling как fallback
+  transports: ['websocket', 'polling'],
   allowEIO3: true
 });
 
@@ -21,12 +20,10 @@ app.use(express.json());
 const publicPath = path.join(__dirname, 'public');
 app.use(express.static(publicPath));
 
-// При заходе на корень редиректим на страницу с вопросом
 app.get('/', (req, res) => {
   res.redirect('/screen');
 });
 
-// Красивые пути без .html
 app.get('/screen', (req, res) => {
   res.sendFile(path.join(publicPath, 'screen.html'), (err) => {
     if (err) {
@@ -53,8 +50,6 @@ app.get('/vote', (req, res) => {
     }
   });
 });
-
-// --- Конфиг опроса ---
 
 const QUESTION = 'Какое слово у вас ассоциируется с нашим событием?';
 
@@ -84,7 +79,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Конфиг для фронта
 app.get('/api/config', (req, res) => {
   res.json({
     question: QUESTION,
@@ -92,7 +86,6 @@ app.get('/api/config', (req, res) => {
   });
 });
 
-// Получаем IP-адрес клиента (учитываем прокси Render)
 function getClientIP(req) {
   return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
          req.headers['x-real-ip'] || 
@@ -101,7 +94,6 @@ function getClientIP(req) {
          'unknown';
 }
 
-// Принимаем один ответ (готовый вариант или свой текст)
 app.post('/api/answer', (req, res) => {
   const { text } = req.body || {};
 
@@ -138,7 +130,6 @@ app.post('/api/reset', (req, res) => {
   res.json({ ok: true });
 });
 
-// WebSocket-подключения
 io.on('connection', (socket) => {
   socket.emit('wordcloud:update', wordCounts);
 });

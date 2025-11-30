@@ -146,7 +146,6 @@
         'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' +
         encodeURIComponent(voteUrl);
 
-      // Загружаем текст вопроса
       React.useEffect(() => {
         fetch('/api/config')
           .then((r) => r.json())
@@ -156,7 +155,6 @@
           .catch(() => setQuestion('Облако слов'));
       }, []);
 
-      // Подключаемся к Socket.io
       React.useEffect(() => {
         const socket = io({
           transports: ['websocket', 'polling'],
@@ -178,34 +176,29 @@
         });
         
         socket.on('wordcloud:update', (data) => {
-          console.log('Получено обновление облака:', data);
           const newCounts = data || {};
-          // Плавный переход к новым данным
           prevCountsRef.current = counts;
           setCounts(newCounts);
         });
         
         return () => {
-          console.log('Отключение Socket.io');
           socket.disconnect();
         };
       }, []);
 
-      // Рисуем облако с анимацией при изменении counts или при ресайзе
       React.useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
         let animationStart = Date.now();
-        const animationDuration = 1000; // 1 секунда на анимацию
+        const animationDuration = 1000;
         const prevCounts = prevCountsRef.current;
 
         function draw(progress = 1) {
           const entries = Object.entries(counts || {});
           const ctx = canvas.getContext('2d');
 
-          // Ограничиваем максимальный размер canvas для предотвращения ошибок памяти
-          const maxCanvasSize = 1200; // Максимальный размер canvas
+          const maxCanvasSize = 1200;
           const clientWidth = Math.min(canvas.clientWidth, maxCanvasSize);
           const clientHeight = Math.min(canvas.clientHeight, maxCanvasSize);
           
@@ -226,39 +219,27 @@
             return;
           }
 
-          // Ограничиваем количество слов для производительности (топ-20)
           const limitedEntries = entries
             .sort((a, b) => b[1] - a[1])
             .slice(0, 20);
           
           if (!limitedEntries.length) return;
           
-          // Нормализуем значения относительно максимального
           const maxCount = Math.max(...limitedEntries.map(([_, c]) => c), 1);
           const minCount = Math.min(...limitedEntries.map(([_, c]) => c), 1);
           
-          // Интерполируем между старыми и новыми значениями для плавной анимации
           const normalizedList = limitedEntries.map(([word, count]) => {
             const prevCount = prevCounts[word] || 0;
-            
-            // Плавный переход от старого к новому значению
             const interpolatedCount = prevCount + (count - prevCount) * progress;
-            
-            // Нормализуем к диапазону 20-60 (уменьшили, чтобы слова не выходили за пределы)
             const normalized = minCount === maxCount 
               ? 40
               : 20 + ((interpolatedCount - minCount) / (maxCount - minCount)) * 40;
             return [word, normalized];
           });
 
-          // Профессиональная палитра корпоративных цветов
           const palette = ['#1e40af', '#3b82f6', '#2563eb', '#1d4ed8', '#0ea5e9', '#0284c7', '#0369a1', '#075985'];
-
-          // Вычисляем weightFactor на основе размера canvas
           const base = Math.min(canvas.width, canvas.height);
-          const weightFactor = base / 25; // Увеличили делитель, чтобы слова были меньше и помещались
-          
-          // Уменьшаем gridSize для лучшей видимости (но не слишком маленький для памяти)
+          const weightFactor = base / 25;
           const gridSize = Math.max(8, Math.floor(base / 100));
 
           try {
@@ -270,9 +251,9 @@
               color: () => palette[Math.floor(Math.random() * palette.length)],
               shrinkToFit: true,
               drawOutOfBound: false,
-              minSize: 14, // Минимальный размер
-              gridSize: gridSize, // Увеличенный gridSize для экономии памяти
-              maxSize: 60, // Максимальный размер, чтобы слова не выходили за пределы
+              minSize: 14,
+              gridSize: gridSize,
+              maxSize: 60,
               fontFamily: 'system-ui, -apple-system, sans-serif',
               fontWeight: 'normal',
               maxRotation: 0,
@@ -280,7 +261,6 @@
             });
           } catch (error) {
             console.error('Ошибка при отрисовке облака:', error);
-            // Показываем сообщение об ошибке
             ctx.fillStyle = '#ef4444';
             ctx.font = '18px system-ui, sans-serif';
             ctx.textAlign = 'center';
@@ -315,16 +295,13 @@
             }
           }
 
-          // Запускаем анимацию
           animationStart = Date.now();
           animate();
         } else {
-          // Нет изменений или первая отрисовка - рисуем сразу
           draw(1);
           prevCountsRef.current = counts;
         }
 
-        // Обработчик ресайза
         const handleResize = () => {
           if (animationFrameRef.current) {
             cancelAnimationFrame(animationFrameRef.current);

@@ -142,37 +142,30 @@
     const msgEl = document.getElementById('msg');
     const cardEl = document.querySelector('.card');
 
-    // Ключ для localStorage
     const VOTED_KEY = 'wordcloud_voted';
 
-    // Проверяем, голосовал ли уже пользователь
     function hasVoted() {
       return localStorage.getItem(VOTED_KEY) === 'true';
     }
 
-    // Помечаем, что пользователь проголосовал
     function markAsVoted() {
       localStorage.setItem(VOTED_KEY, 'true');
     }
 
-    // Показываем сообщение о том, что уже голосовал
     function showAlreadyVoted() {
       const message = document.createElement('div');
       message.className = 'already-voted-message';
       message.textContent = 'Вы уже проголосовали. Один человек может проголосовать только один раз.';
       cardEl.insertBefore(message, questionEl);
       
-      // Делаем форму неактивной
       cardEl.classList.add('already-voted');
       sendBtn.disabled = true;
     }
 
-    // Проверяем при загрузке страницы
     if (hasVoted()) {
       showAlreadyVoted();
     }
 
-    // Загружаем конфиг (вопрос + варианты)
     fetch('/api/config')
       .then((r) => r.json())
       .then((cfg) => {
@@ -194,7 +187,6 @@
         questionEl.textContent = 'Вопрос';
       });
 
-    // Если пользователь печатает свой вариант — автоотмечаем радио "Свой вариант"
     customTextEl.addEventListener('input', () => {
       if (customTextEl.value.trim()) {
         customRadioEl.checked = true;
@@ -205,7 +197,6 @@
       msgEl.textContent = '';
       msgEl.className = 'msg';
 
-      // Проверка на клиенте
       if (hasVoted()) {
         msgEl.textContent = 'Вы уже проголосовали. Один человек может проголосовать только один раз.';
         msgEl.className = 'msg error';
@@ -244,7 +235,6 @@
           msgEl.textContent = data.error || 'Ошибка при отправке, попробуйте ещё раз.';
           msgEl.className = 'msg error';
           
-          // Если ошибка 403 (уже голосовал), помечаем на клиенте
           if (res.status === 403) {
             markAsVoted();
             showAlreadyVoted();
@@ -252,13 +242,11 @@
           return;
         }
 
-        // Успешное голосование
         markAsVoted();
         msgEl.textContent = 'Спасибо! Ваш ответ учтён ✅';
         msgEl.className = 'msg success';
         customTextEl.value = '';
         
-        // Делаем форму неактивной
         cardEl.classList.add('already-voted');
         sendBtn.disabled = true;
       } catch (e) {
