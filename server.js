@@ -140,14 +140,7 @@ app.post('/api/reset', (req, res) => {
 
 // WebSocket-подключения
 io.on('connection', (socket) => {
-  console.log('Новое подключение:', socket.id);
-  
-  // При подключении сразу отправляем текущее состояние
   socket.emit('wordcloud:update', wordCounts);
-  
-  socket.on('disconnect', () => {
-    console.log('Отключение:', socket.id);
-  });
 });
 
 const PORT = process.env.PORT || 3000;
