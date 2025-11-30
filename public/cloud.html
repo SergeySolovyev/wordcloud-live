@@ -41,20 +41,21 @@
       display: block;
     }
     .cloud-wrapper {
-      animation: float 20s ease-in-out infinite;
+      animation: float 15s ease-in-out infinite;
+      will-change: transform; /* Оптимизация для анимации */
     }
     @keyframes float {
       0%, 100% {
-        transform: translate(0, 0);
+        transform: translate(0, 0px) rotate(0deg);
       }
       25% {
-        transform: translate(2px, -3px);
+        transform: translate(5px, -5px) rotate(0.5deg);
       }
       50% {
-        transform: translate(-2px, 2px);
+        transform: translate(-5px, 5px) rotate(-0.5deg);
       }
       75% {
-        transform: translate(3px, 1px);
+        transform: translate(3px, -3px) rotate(0.3deg);
       }
     }
     .side {
