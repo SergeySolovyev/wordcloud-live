@@ -332,11 +332,18 @@
             <button 
               className="reset-btn" 
               onClick={async () => {
-                if (confirm('Сбросить все результаты?')) {
+                if (confirm('Сбросить все результаты и разрешить повторное голосование?')) {
                   try {
-                    await fetch('/api/reset', { method: 'POST' });
+                    const response = await fetch('/api/reset', { method: 'POST' });
+                    if (response.ok) {
+                      localStorage.removeItem('wordcloud_voted');
+                      alert('✅ Результаты сброшены!\n\n• Облако слов очищено\n• IP-адреса очищены\n• Можно голосовать заново');
+                    } else {
+                      alert('Ошибка при сбросе результатов');
+                    }
                   } catch (e) {
                     console.error('Ошибка сброса:', e);
+                    alert('Ошибка соединения при сбросе');
                   }
                 }
               }}
