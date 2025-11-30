@@ -68,8 +68,6 @@ const DEFAULT_OPTIONS = [
 // Частоты слов в памяти
 let wordCounts = {};
 
-// Хранилище уже проголосовавших (IP-адреса)
-// В продакшене лучше использовать Redis или БД, но для MVP хватит памяти
 const votedIPs = new Set();
 
 // Простейшая нормализация русского текста
@@ -82,7 +80,6 @@ function normalizeText(text) {
     .filter((w) => w.length > 1);
 }
 
-// Тестовый эндпоинт для проверки работоспособности
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -115,16 +112,13 @@ app.post('/api/answer', (req, res) => {
   // Проверяем, не голосовал ли уже этот IP
   const clientIP = getClientIP(req);
   
-  if (votedIPs.has(clientIP)) {
-    console.log('Попытка повторного голосования с IP:', clientIP);
-    return res.status(403).json({ 
+    if (votedIPs.has(clientIP)) {
+    return res.status(403).json({
       error: 'Вы уже проголосовали. Один человек может проголосовать только один раз.' 
     });
   }
 
-  // Добавляем IP в список проголосовавших
   votedIPs.add(clientIP);
-  console.log('Новое голосование с IP:', clientIP);
 
   const words = normalizeText(text);
 
@@ -132,21 +126,15 @@ app.post('/api/answer', (req, res) => {
     wordCounts[word] = (wordCounts[word] || 0) + 1;
   });
 
-  // Рассылаем всем новое состояние облака
-  console.log('Новое голосование, слова:', words);
-  console.log('Текущие счетчики:', wordCounts);
   io.emit('wordcloud:update', wordCounts);
-  console.log('Обновление отправлено всем клиентам');
 
   res.json({ ok: true });
 });
 
-// Сбросить все ответы (если захочешь делать новый раунд)
 app.post('/api/reset', (req, res) => {
   wordCounts = {};
-  votedIPs.clear(); // Очищаем список проголосовавших
+  votedIPs.clear();
   io.emit('wordcloud:update', wordCounts);
-  console.log('Облако и список голосов сброшены');
   res.json({ ok: true });
 });
 
