@@ -6,6 +6,9 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 
+// Настройка для работы за прокси (Render.com)
+app.set('trust proxy', true);
+
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -84,10 +87,26 @@ app.get('/api/config', (req, res) => {
 });
 
 function getClientIP(req) {
-  return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
-         req.headers['x-real-ip'] || 
-         req.connection.remoteAddress || 
-         req.socket.remoteAddress ||
+  // Проверяем x-forwarded-for (для Render.com и других прокси)
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    const ips = forwarded.split(',').map(ip => ip.trim());
+    return ips[0] || 'unknown';
+  }
+  
+  // Проверяем x-real-ip
+  if (req.headers['x-real-ip']) {
+    return req.headers['x-real-ip'];
+  }
+  
+  // Используем Express req.ip (работает с trust proxy)
+  if (req.ip) {
+    return req.ip;
+  }
+  
+  // Fallback на connection/socket
+  return req.connection?.remoteAddress || 
+         req.socket?.remoteAddress ||
          'unknown';
 }
 
@@ -100,12 +119,15 @@ app.post('/api/answer', (req, res) => {
 
   const clientIP = getClientIP(req);
   
+  // Проверяем, не голосовал ли уже этот IP
   if (votedIPs.has(clientIP)) {
     return res.status(403).json({
-      error: 'Вы уже проголосовали. Один человек может проголосовать только один раз.' 
+      error: 'Вы уже проголосовали. Один человек может проголосовать только один раз.',
+      alreadyVoted: true
     });
   }
 
+  // Добавляем IP в список проголосовавших
   votedIPs.add(clientIP);
 
   const words = normalizeText(text);

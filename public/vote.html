@@ -235,9 +235,12 @@
           msgEl.textContent = data.error || 'Ошибка при отправке, попробуйте ещё раз.';
           msgEl.className = 'msg error';
           
-          if (res.status === 403) {
+          // Если сервер вернул 403 (уже проголосовал), блокируем форму
+          if (res.status === 403 || data.alreadyVoted) {
             markAsVoted();
             showAlreadyVoted();
+            // Дополнительно блокируем кнопку
+            sendBtn.disabled = true;
           }
           return;
         }
