@@ -239,9 +239,11 @@
             shrinkToFit: true,
             drawOutOfBound: false,
             minSize: 12,
-            gridSize: 8,
+            gridSize: Math.max(4, Math.floor(base / 100)), // Адаптивный gridSize
             fontFamily: 'system-ui, -apple-system, sans-serif',
-            fontWeight: 'normal'
+            fontWeight: 'normal',
+            maxRotation: 0,
+            minRotation: 0
           });
         }
 
