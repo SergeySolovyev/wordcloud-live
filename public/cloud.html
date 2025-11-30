@@ -280,7 +280,6 @@
             const elapsed = Date.now() - animationStart;
             const progress = Math.min(elapsed / animationDuration, 1);
             
-            // Easing функция для плавности
             const easedProgress = progress < 0.5 
               ? 2 * progress * progress 
               : 1 - Math.pow(-2 * progress + 2, 2) / 2;
@@ -290,7 +289,6 @@
             if (progress < 1) {
               animationFrameRef.current = requestAnimationFrame(animate);
             } else {
-              // Анимация завершена, обновляем предыдущие значения
               prevCountsRef.current = counts;
             }
           }

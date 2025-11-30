@@ -60,12 +60,9 @@ const DEFAULT_OPTIONS = [
   'Сложно'
 ];
 
-// Частоты слов в памяти
 let wordCounts = {};
-
 const votedIPs = new Set();
 
-// Простейшая нормализация русского текста
 function normalizeText(text) {
   if (!text) return [];
   return text
@@ -101,10 +98,9 @@ app.post('/api/answer', (req, res) => {
     return res.status(400).json({ error: 'Пустой ответ' });
   }
 
-  // Проверяем, не голосовал ли уже этот IP
   const clientIP = getClientIP(req);
   
-    if (votedIPs.has(clientIP)) {
+  if (votedIPs.has(clientIP)) {
     return res.status(403).json({
       error: 'Вы уже проголосовали. Один человек может проголосовать только один раз.' 
     });
