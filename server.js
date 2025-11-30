@@ -145,6 +145,8 @@ app.post('/api/reset', (req, res) => {
   wordCounts = {};
   votedIPs.clear();
   io.emit('wordcloud:update', wordCounts);
+  // Отправляем событие сброса, чтобы все клиенты очистили localStorage
+  io.emit('wordcloud:reset');
   res.json({ ok: true });
 });
 

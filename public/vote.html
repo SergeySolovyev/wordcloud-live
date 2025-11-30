@@ -117,6 +117,7 @@
       box-shadow: 0 2px 8px rgba(251, 191, 36, 0.2);
     }
   </style>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 <body>
   <div class="card">
@@ -153,6 +154,9 @@
     }
 
     function showAlreadyVoted() {
+      const existingMessage = cardEl.querySelector('.already-voted-message');
+      if (existingMessage) return;
+      
       const message = document.createElement('div');
       message.className = 'already-voted-message';
       message.textContent = 'Вы уже проголосовали. Один человек может проголосовать только один раз.';
@@ -162,9 +166,31 @@
       sendBtn.disabled = true;
     }
 
+    function clearVotedStatus() {
+      localStorage.removeItem(VOTED_KEY);
+      cardEl.classList.remove('already-voted');
+      sendBtn.disabled = false;
+      const existingMessage = cardEl.querySelector('.already-voted-message');
+      if (existingMessage) {
+        existingMessage.remove();
+      }
+    }
+
     if (hasVoted()) {
       showAlreadyVoted();
     }
+
+    // Подключаемся к Socket.io для получения уведомлений о сбросе
+    const socket = io({
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5
+    });
+
+    socket.on('wordcloud:reset', () => {
+      clearVotedStatus();
+    });
 
     fetch('/api/config')
       .then((r) => r.json())
