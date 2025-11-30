@@ -206,21 +206,28 @@
             return;
           }
 
+          // Ограничиваем количество слов для производительности (топ-30)
+          const limitedEntries = entries
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 30);
+          
+          if (!limitedEntries.length) return;
+          
           // Нормализуем значения относительно максимального
-          const maxCount = Math.max(...entries.map(([_, c]) => c), 1);
-          const minCount = Math.min(...entries.map(([_, c]) => c), 1);
+          const maxCount = Math.max(...limitedEntries.map(([_, c]) => c), 1);
+          const minCount = Math.min(...limitedEntries.map(([_, c]) => c), 1);
           
           // Интерполируем между старыми и новыми значениями для плавной анимации
-          const normalizedList = entries.map(([word, count]) => {
+          const normalizedList = limitedEntries.map(([word, count]) => {
             const prevCount = prevCounts[word] || 0;
             
             // Плавный переход от старого к новому значению
             const interpolatedCount = prevCount + (count - prevCount) * progress;
             
-            // Нормализуем к диапазону 30-120
+            // Нормализуем к диапазону 20-80 (уменьшили для меньшего потребления памяти)
             const normalized = minCount === maxCount 
-              ? 75
-              : 30 + ((interpolatedCount - minCount) / (maxCount - minCount)) * 90;
+              ? 50
+              : 20 + ((interpolatedCount - minCount) / (maxCount - minCount)) * 60;
             return [word, normalized];
           });
 
@@ -228,23 +235,44 @@
 
           // Вычисляем weightFactor на основе размера canvas
           const base = Math.min(canvas.width, canvas.height);
-          const weightFactor = base / 10;
+          const weightFactor = base / 15; // Увеличили делитель для меньших размеров
+          
+          // Ограничиваем размер canvas для предотвращения ошибок памяти
+          const maxCanvasSize = 1200; // Максимальный размер canvas
+          if (canvas.width > maxCanvasSize || canvas.height > maxCanvasSize) {
+            const scale = Math.min(maxCanvasSize / canvas.width, maxCanvasSize / canvas.height);
+            canvas.width = Math.floor(canvas.width * scale);
+            canvas.height = Math.floor(canvas.height * scale);
+          }
 
-          WordCloud(canvas, {
-            list: normalizedList,
-            weightFactor,
-            rotateRatio: 0,
-            backgroundColor: 'rgba(0,0,0,0)',
-            color: () => palette[Math.floor(Math.random() * palette.length)],
-            shrinkToFit: true,
-            drawOutOfBound: false,
-            minSize: 12,
-            gridSize: Math.max(4, Math.floor(base / 100)), // Адаптивный gridSize
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            fontWeight: 'normal',
-            maxRotation: 0,
-            minRotation: 0
-          });
+          try {
+            WordCloud(canvas, {
+              list: normalizedList,
+              weightFactor,
+              rotateRatio: 0,
+              backgroundColor: 'rgba(0,0,0,0)',
+              color: () => palette[Math.floor(Math.random() * palette.length)],
+              shrinkToFit: true,
+              drawOutOfBound: false,
+              minSize: 10,
+              gridSize: Math.max(8, Math.floor(base / 80)), // Увеличили gridSize для меньшего потребления памяти
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              fontWeight: 'normal',
+              maxRotation: 0,
+              minRotation: 0
+            });
+          } catch (error) {
+            console.error('Ошибка при отрисовке облака:', error);
+            // Показываем сообщение об ошибке
+            ctx.fillStyle = '#ef4444';
+            ctx.font = '18px system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(
+              'Ошибка отрисовки. Попробуйте обновить страницу.',
+              canvas.width / 2,
+              canvas.height / 2
+            );
+          }
         }
 
           // Анимация перехода (только если есть изменения)
