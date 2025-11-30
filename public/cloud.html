@@ -241,13 +241,8 @@
           const base = Math.min(canvas.width, canvas.height);
           const weightFactor = base / 20; // Еще больше делитель для меньших размеров
           
-          // Ограничиваем размер canvas для предотвращения ошибок памяти
-          const maxCanvasSize = 1200; // Максимальный размер canvas
-          if (canvas.width > maxCanvasSize || canvas.height > maxCanvasSize) {
-            const scale = Math.min(maxCanvasSize / canvas.width, maxCanvasSize / canvas.height);
-            canvas.width = Math.floor(canvas.width * scale);
-            canvas.height = Math.floor(canvas.height * scale);
-          }
+          // Увеличиваем gridSize для экономии памяти
+          const gridSize = Math.max(12, Math.floor(base / 60));
 
           try {
             WordCloud(canvas, {
@@ -259,7 +254,7 @@
               shrinkToFit: true,
               drawOutOfBound: false,
               minSize: 10,
-              gridSize: Math.max(8, Math.floor(base / 80)), // Увеличили gridSize для меньшего потребления памяти
+              gridSize: gridSize, // Увеличенный gridSize для экономии памяти
               fontFamily: 'system-ui, -apple-system, sans-serif',
               fontWeight: 'normal',
               maxRotation: 0,
