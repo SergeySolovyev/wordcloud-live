@@ -176,9 +176,18 @@
         });
         
         socket.on('wordcloud:update', (data) => {
+          console.log('Получено обновление облака:', data);
           const newCounts = data || {};
-          prevCountsRef.current = counts;
-          setCounts(newCounts);
+          setCounts((prevCounts) => {
+            prevCountsRef.current = prevCounts;
+            return newCounts;
+          });
+        });
+        
+        socket.on('wordcloud:reset', () => {
+          console.log('Получено событие сброса');
+          setCounts({});
+          prevCountsRef.current = {};
         });
         
         return () => {
@@ -188,7 +197,12 @@
 
       React.useEffect(() => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        if (!canvas) {
+          console.log('Canvas не найден');
+          return;
+        }
+
+        console.log('Отрисовка облака, количество слов:', Object.keys(counts || {}).length);
 
         let animationStart = Date.now();
         const animationDuration = 1000;
@@ -197,13 +211,30 @@
         function draw(progress = 1) {
           const entries = Object.entries(counts || {});
           const ctx = canvas.getContext('2d');
-
-          const maxCanvasSize = 1200;
-          const clientWidth = Math.min(canvas.clientWidth, maxCanvasSize);
-          const clientHeight = Math.min(canvas.clientHeight, maxCanvasSize);
           
+          if (!ctx) {
+            console.error('Не удалось получить контекст canvas');
+            return;
+          }
+
+          // Получаем размеры контейнера
+          const container = canvas.parentElement;
+          if (!container) {
+            console.error('Контейнер canvas не найден');
+            return;
+          }
+          
+          const maxCanvasSize = 1200;
+          const containerWidth = container.clientWidth || 800;
+          const containerHeight = container.clientHeight || 600;
+          const clientWidth = Math.min(containerWidth, maxCanvasSize);
+          const clientHeight = Math.min(containerHeight, maxCanvasSize);
+          
+          // Устанавливаем размеры canvas
           canvas.width = clientWidth;
           canvas.height = clientHeight;
+          
+          console.log('Размеры canvas:', clientWidth, 'x', clientHeight);
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -243,6 +274,7 @@
           const gridSize = Math.max(8, Math.floor(base / 100));
 
           try {
+            console.log('Отрисовка WordCloud с', normalizedList.length, 'словами');
             WordCloud(canvas, {
               list: normalizedList,
               weightFactor,
@@ -259,6 +291,7 @@
               maxRotation: 0,
               minRotation: 0
             });
+            console.log('WordCloud отрисован успешно');
           } catch (error) {
             console.error('Ошибка при отрисовке облака:', error);
             ctx.fillStyle = '#ef4444';
