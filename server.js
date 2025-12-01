@@ -150,6 +150,9 @@ app.post('/api/answer', (req, res) => {
     wordCounts[normalizedKey] = (wordCounts[normalizedKey] || 0) + 1;
   }
 
+  console.log('Новое голосование:', trimmedText, 'IP:', clientIP);
+  console.log('Текущие wordCounts:', wordCounts);
+  
   io.emit('wordcloud:update', wordCounts);
 
   res.json({ ok: true });
@@ -165,6 +168,7 @@ app.post('/api/reset', (req, res) => {
 });
 
 io.on('connection', (socket) => {
+  console.log('Новое подключение Socket.io, отправляю текущие данные:', wordCounts);
   socket.emit('wordcloud:update', wordCounts);
 });
 
