@@ -31,7 +31,8 @@
     }
     .cloud-wrapper {
       flex: 1;
-      min-height: 400px;
+      min-height: 500px;
+      min-width: 600px;
       border-radius: 12px;
       border: 2px solid #e5e7eb;
       overflow: hidden;
@@ -230,8 +231,8 @@
           const maxCanvasSize = 1200;
           const containerWidth = rect.width || container.clientWidth || 800;
           const containerHeight = rect.height || container.clientHeight || 600;
-          const clientWidth = Math.max(400, Math.min(containerWidth, maxCanvasSize));
-          const clientHeight = Math.max(400, Math.min(containerHeight, maxCanvasSize));
+          const clientWidth = Math.max(600, Math.min(containerWidth, maxCanvasSize));
+          const clientHeight = Math.max(500, Math.min(containerHeight, maxCanvasSize));
           
           // Устанавливаем размеры canvas
           canvas.width = clientWidth;
@@ -266,8 +267,8 @@
             const prevCount = prevCounts[word] || 0;
             const interpolatedCount = prevCount + (count - prevCount) * progress;
             const normalized = minCount === maxCount 
-              ? 40
-              : 20 + ((interpolatedCount - minCount) / (maxCount - minCount)) * 40;
+              ? 50
+              : 30 + ((interpolatedCount - minCount) / (maxCount - minCount)) * 50;
             return [word, normalized];
           });
 
@@ -286,9 +287,9 @@
               color: () => palette[Math.floor(Math.random() * palette.length)],
               shrinkToFit: true,
               drawOutOfBound: false,
-              minSize: 14,
+              minSize: 20,
               gridSize: gridSize,
-              maxSize: 60,
+              maxSize: 80,
               fontFamily: 'system-ui, -apple-system, sans-serif',
               fontWeight: 'normal',
               maxRotation: 0,
