@@ -144,9 +144,11 @@
       const animationFrameRef = React.useRef(null);
 
       const voteUrl = window.location.origin + '/vote';
+      // Генерируем QR-код с timestamp для предотвращения кэширования
       const qrSrc =
-        'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' +
-        encodeURIComponent(voteUrl);
+        'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' +
+        encodeURIComponent(voteUrl) +
+        '&t=' + Date.now();
 
       React.useEffect(() => {
         fetch('/api/config')

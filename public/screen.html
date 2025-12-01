@@ -109,9 +109,11 @@
     document.getElementById('link').textContent = voteUrl;
 
     const qrImg = document.getElementById('qr');
+    // Генерируем QR-код с timestamp для предотвращения кэширования
     qrImg.src =
-      'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' +
-      encodeURIComponent(voteUrl);
+      'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' +
+      encodeURIComponent(voteUrl) +
+      '&t=' + Date.now();
 
     fetch('/api/config')
       .then((r) => r.json())
