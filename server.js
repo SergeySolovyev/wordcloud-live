@@ -144,7 +144,10 @@ app.post('/api/answer', (req, res) => {
     wordCounts[exactOption] = (wordCounts[exactOption] || 0) + 1;
   } else {
     // Если это свой вариант - сохраняем как целую фразу, не разбивая на слова
-    wordCounts[trimmedText] = (wordCounts[trimmedText] || 0) + 1;
+    // Нормализуем ключ к нижнему регистру, чтобы одинаковые ответы суммировались
+    // (независимо от регистра: "мой раб", "Мой раб", "МОЙ РАБ" - все одно и то же)
+    const normalizedKey = trimmedText.toLowerCase();
+    wordCounts[normalizedKey] = (wordCounts[normalizedKey] || 0) + 1;
   }
 
   io.emit('wordcloud:update', wordCounts);
