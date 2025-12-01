@@ -31,6 +31,7 @@
     }
     .cloud-wrapper {
       flex: 1;
+      min-height: 400px;
       border-radius: 12px;
       border: 2px solid #e5e7eb;
       overflow: hidden;
@@ -224,17 +225,19 @@
             return;
           }
           
+          // Используем getBoundingClientRect для точных размеров
+          const rect = container.getBoundingClientRect();
           const maxCanvasSize = 1200;
-          const containerWidth = container.clientWidth || 800;
-          const containerHeight = container.clientHeight || 600;
-          const clientWidth = Math.min(containerWidth, maxCanvasSize);
-          const clientHeight = Math.min(containerHeight, maxCanvasSize);
+          const containerWidth = rect.width || container.clientWidth || 800;
+          const containerHeight = rect.height || container.clientHeight || 600;
+          const clientWidth = Math.max(400, Math.min(containerWidth, maxCanvasSize));
+          const clientHeight = Math.max(400, Math.min(containerHeight, maxCanvasSize));
           
           // Устанавливаем размеры canvas
           canvas.width = clientWidth;
           canvas.height = clientHeight;
           
-          console.log('Размеры canvas:', clientWidth, 'x', clientHeight);
+          console.log('Размеры canvas:', clientWidth, 'x', clientHeight, 'контейнер:', containerWidth, 'x', containerHeight);
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
