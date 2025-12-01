@@ -129,24 +129,22 @@ app.post('/api/answer', (req, res) => {
   // Добавляем IP в список проголосовавших
   votedIPs.add(clientIP);
 
-  // Проверяем, является ли ответ точным совпадением с одним из вариантов
   const trimmedText = text.trim();
+  
+  // Проверяем, является ли ответ точным совпадением с одним из вариантов
   const isExactMatch = DEFAULT_OPTIONS.some(opt => 
     opt.toLowerCase() === trimmedText.toLowerCase()
   );
 
   if (isExactMatch) {
-    // Если это точное совпадение, сохраняем как одно слово (с оригинальным регистром)
+    // Если это точное совпадение с вариантом, сохраняем как одно слово (с оригинальным регистром)
     const exactOption = DEFAULT_OPTIONS.find(opt => 
       opt.toLowerCase() === trimmedText.toLowerCase()
     );
     wordCounts[exactOption] = (wordCounts[exactOption] || 0) + 1;
   } else {
-    // Иначе разбиваем на слова как раньше
-    const words = normalizeText(text);
-    words.forEach((word) => {
-      wordCounts[word] = (wordCounts[word] || 0) + 1;
-    });
+    // Если это свой вариант - сохраняем как целую фразу, не разбивая на слова
+    wordCounts[trimmedText] = (wordCounts[trimmedText] || 0) + 1;
   }
 
   io.emit('wordcloud:update', wordCounts);
